@@ -1,0 +1,750 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Challenge - Hackverse</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #1f2937; 
+            color: #e5e7eb; 
+        }
+        .message-box-custom { 
+            @apply fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-gray-700 text-white p-6 rounded-lg shadow-xl z-50 text-center;
+            min-width: 300px; max-width: 90%; 
+        }
+        .message-box-custom.hidden { 
+            display: none;
+        }
+        .prevention-tips-list {
+            @apply list-disc list-inside text-left text-sm mt-3;
+        }
+        .packet-display {
+            @apply bg-black text-green-400 font-mono text-xs p-4 rounded-md h-64 overflow-y-auto border border-gray-700;
+            white-space: pre-wrap; 
+            word-break: break-all; 
+        }
+        .btn-video { 
+             @apply mt-2 bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-4 rounded-lg shadow-md transition-colors text-sm inline-flex items-center focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-red-500;
+        }
+        .btn-download { 
+            @apply bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded-lg shadow-md transition-colors text-sm inline-flex items-center focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-green-500;
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <header class="bg-gray-800 shadow-lg sticky top-0 z-40">
+        <nav class="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <div class="flex items-center">
+                    <a href="http://localhost:8080/index.html" class="text-2xl font-bold text-indigo-400">Hackverse</a>
+                </div>
+                <div class="flex items-center">
+                    <span id="stopwatch" class="text-lg text-yellow-400 font-semibold mr-4 hidden">00:00</span>
+                    <button id="hintButton" class="bg-gray-500 text-gray-300 font-semibold py-2 px-4 rounded-lg shadow-md cursor-not-allowed mr-3 focus:outline-none" disabled>Hint (5:00)</button>
+                    <a href="http://localhost:8080/dashboard.html" class="px-3 py-2 rounded-md text-sm font-medium text-gray-300 hover:bg-gray-700 hover:text-white bg-gray-700 transition-colors focus:outline-none">Back to Dashboard</a>
+                    <div class="flex items-center ml-3">
+                         <span class="text-gray-300 mr-3" id="userPointsHeader">Points: 0</span>
+                        <div id="userInitialsHeader" class="w-10 h-10 rounded-full bg-indigo-500 text-white flex items-center justify-center text-lg font-semibold">XY</div>
+                    </div>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <main class="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div id="levelLoading" class="text-center text-xl py-10">Loading level content...</div>
+        <div id="levelError" class="text-center text-xl py-10 text-red-400 hidden">
+            <p id="levelErrorMessage">Failed to load level content.</p>
+            <p class="text-sm text-gray-400 mt-2">Check the browser console (F12) and backend server logs for more details.</p>
+        </div>
+        
+        <div id="levelContent" class="hidden">
+            <h1 id="levelTitle" class="text-3xl font-bold text-white mb-2">Level Title</h1>
+            <p id="levelDifficulty" class="text-indigo-300 mb-6">Difficulty: Easy</p>
+
+            <div class="bg-yellow-600 border-l-4 border-yellow-400 text-yellow-100 p-4 mb-6 rounded-md shadow">
+                <p class="font-semibold">Important:</p>
+                <p>Please watch the introductory video (if available) to its entirety to make sure there is no confusion before starting the level.</p>
+            </div>
+
+            <section id="videoSection" class="mb-8">
+                <h2 class="text-2xl font-semibold text-white mb-4">Introduction to <span id="videoConceptName">Concept</span></h2>
+                <div id="videoPlayerContainer" class="bg-gray-700 rounded-lg shadow-lg p-4 text-center">
+                    <p id="videoPlaceholderText" class="text-gray-400">Video information will load here.</p>
+                </div>
+                 <p id="videoDescription" class="mt-4 text-gray-300">This video explains the concept.</p>
+            </section>
+
+            <section id="challengeArea">
+                <h2 class="text-2xl font-semibold text-white mb-4">The Challenge</h2>
+                <div id="challengeItself" class="bg-gray-800 p-6 sm:p-8 rounded-xl shadow-xl min-h-[300px]">
+                    <p class="text-gray-400">Challenge details will load here...</p>
+                </div>
+                <div id="bruteForceSpecificHintArea" class="mt-4 p-3 bg-yellow-200 text-yellow-800 rounded-md hidden">
+                    <p id="bruteForceSpecificHintText"></p>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <div id="messageBox" class="message-box-custom hidden"> 
+        <p id="messageBoxText" class="mb-4"></p>
+        <div id="preventionTipsArea" class="hidden">
+            <h4 class="font-semibold text-lg mt-4 mb-2 text-green-300">Prevention Tips:</h4>
+            <ul id="preventionTipsList" class="prevention-tips-list"></ul>
+        </div>
+        <button id="messageBoxButton" class="mt-4 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 px-4 rounded-lg shadow-md transition-colors focus:outline-none">OK</button>
+    </div>
+
+    <footer class="bg-gray-800 border-t border-gray-700 mt-12">
+        <div class="container mx-auto px-6 py-8 text-center text-gray-400">
+            <p>© <span id="currentYear"></span> Hackverse. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // --- Global Scope Variables & DOM Element References ---
+            document.getElementById('currentYear').textContent = new Date().getFullYear();
+            const API_BASE_URL = 'http://localhost:8000'; 
+            const FRONTEND_BASE_URL = 'http://localhost:8080'; 
+
+            const token = localStorage.getItem('hackverseToken');
+            const userString = localStorage.getItem('hackverseUser');
+            let user = null;
+
+            const levelLoading = document.getElementById('levelLoading');
+            const levelErrorDiv = document.getElementById('levelError'); 
+            const levelErrorMessage = document.getElementById('levelErrorMessage');
+            const levelContent = document.getElementById('levelContent');
+            const levelTitle = document.getElementById('levelTitle');
+            const levelDifficulty = document.getElementById('levelDifficulty');
+            const videoConceptName = document.getElementById('videoConceptName');
+            const videoPlayerContainer = document.getElementById('videoPlayerContainer');
+            const videoPlaceholder = document.getElementById('videoPlaceholderText'); 
+            const videoDescription = document.getElementById('videoDescription');
+            const challengeItself = document.getElementById('challengeItself');
+            const hintButton = document.getElementById('hintButton');
+            const stopwatchDisplay = document.getElementById('stopwatch');
+            const bruteForceSpecificHintArea = document.getElementById('bruteForceSpecificHintArea');
+            const bruteForceSpecificHintText = document.getElementById('bruteForceSpecificHintText');
+            const messageBox = document.getElementById('messageBox'); 
+            const messageBoxText = document.getElementById('messageBoxText');
+            const messageBoxButton = document.getElementById('messageBoxButton');
+            const preventionTipsArea = document.getElementById('preventionTipsArea');
+            const preventionTipsList = document.getElementById('preventionTipsList');
+            const userInitialsHeader = document.getElementById('userInitialsHeader');
+            const userPointsHeader = document.getElementById('userPointsHeader');
+
+            let hintIntervalIdVal; 
+            let stopwatchIntervalId;
+            let secondsElapsed = 0;
+            let currentLevelData = null; 
+
+            // --- Utility Functions ---
+            function redirectToLogin() { window.location.href = `${FRONTEND_BASE_URL}/login.html`; }
+            function redirectToDashboard() { window.location.href = `${FRONTEND_BASE_URL}/dashboard.html`; }
+            function escapeHTML(str) {
+                if (typeof str !== 'string') return '';
+                return str.replace(/[&<>"'`]/g, match => ({
+                    '&': '&amp;', '<': '&lt;', '>': '&gt;',
+                    '"': '&quot;', "'": '&#39;', '`': '&#96;'
+                }[match]));
+            }
+            function showMessageBox(text, tips, onOkCallback) { 
+                if(messageBoxText) messageBoxText.textContent = text;
+                if(preventionTipsArea && preventionTipsList && tips && tips.length > 0) {
+                    preventionTipsList.innerHTML = ''; 
+                    tips.forEach(tip => {
+                        const li = document.createElement('li');
+                        li.textContent = escapeHTML(tip);
+                        preventionTipsList.appendChild(li);
+                    });
+                    preventionTipsArea.classList.remove('hidden');
+                } else if (preventionTipsArea) {
+                    preventionTipsArea.classList.add('hidden');
+                }
+
+                if(messageBox) messageBox.classList.remove('hidden');
+                if(messageBoxButton) messageBoxButton.onclick = () => {
+                    if(messageBox) messageBox.classList.add('hidden');
+                    if (onOkCallback) onOkCallback();
+                };
+            }
+            
+            function startStopwatch() { /* ... (implementation as before) ... */ }
+            function stopStopwatch() { /* ... (implementation as before) ... */ }
+            function enableHintButton() { /* ... (implementation as before) ... */ }
+            function startHintTimer() { /* ... (implementation as before, considering brute force hint) ... */ }
+            
+            function startStopwatch() {
+                if(!stopwatchDisplay) return;
+                stopwatchDisplay.classList.remove('hidden');
+                secondsElapsed = 0;
+                stopwatchIntervalId = setInterval(() => {
+                    secondsElapsed++;
+                    const minutes = Math.floor(secondsElapsed / 60).toString().padStart(2, '0');
+                    const seconds = (secondsElapsed % 60).toString().padStart(2, '0');
+                    stopwatchDisplay.textContent = `${minutes}:${seconds}`;
+                }, 1000);
+            }
+
+            function stopStopwatch() { clearInterval(stopwatchIntervalId); }
+
+            function enableHintButton() {
+                if(!hintButton) return;
+                hintButton.disabled = false;
+                hintButton.textContent = 'Show Hint';
+                hintButton.classList.remove('bg-gray-500', 'text-gray-300', 'cursor-not-allowed');
+                hintButton.classList.add('bg-yellow-500', 'hover:bg-yellow-600', 'text-gray-900');
+            }
+            
+            function startHintTimer() {
+                if(!hintButton || !currentLevelData) return;
+                if (currentLevelData.type === 'brute-force' && 
+                    bruteForceSpecificHintArea && !bruteForceSpecificHintArea.classList.contains('hidden')) {
+                    enableHintButton(); 
+                    hintButton.textContent = "Hint (Password List Revealed)"; 
+                    return;
+                }
+                let hintTimeRemaining = 1; 
+                hintButton.disabled = true;
+                hintButton.classList.add('bg-gray-500', 'text-gray-300', 'cursor-not-allowed');
+                hintButton.classList.remove('bg-yellow-500', 'hover:bg-yellow-600', 'text-gray-900');
+                const updateHintButtonText = () => {
+                    if (hintTimeRemaining <= 0) {
+                        enableHintButton();
+                        clearInterval(hintIntervalIdVal); 
+                    } else {
+                        const minutes = Math.floor(hintTimeRemaining / 60);
+                        const seconds = (hintTimeRemaining % 60).toString().padStart(2, '0');
+                        hintButton.textContent = `Hint (${minutes}:${seconds})`;
+                        hintTimeRemaining--;
+                    }
+                };
+                updateHintButtonText(); 
+                hintIntervalIdVal = setInterval(updateHintButtonText, 1000);
+            }
+
+            // --- Initialization and Main Logic ---
+            const essentialElements = [levelLoading, levelErrorDiv, levelErrorMessage, levelContent, levelTitle, levelDifficulty, videoConceptName, videoPlayerContainer, videoPlaceholder, videoDescription, challengeItself, hintButton, stopwatchDisplay, bruteForceSpecificHintArea, bruteForceSpecificHintText, messageBox, messageBoxText, messageBoxButton, userInitialsHeader, userPointsHeader, preventionTipsArea, preventionTipsList];
+            if (essentialElements.some(el => !el)) {
+                console.error("CRITICAL: One or more essential level page elements are missing from the DOM. Check all IDs.");
+                if(levelLoading) levelLoading.style.display = 'none';
+                if(levelErrorDiv) levelErrorDiv.classList.remove('hidden');
+                if(levelErrorMessage) levelErrorMessage.textContent = "Page structure error. Cannot load level.";
+                return; 
+            }
+            
+            if (userString) {
+                try { user = JSON.parse(userString); } catch (e) {
+                    console.error("Error parsing user data from localStorage:", e);
+                    localStorage.removeItem('hackverseUser'); localStorage.removeItem('hackverseToken');
+                    redirectToLogin();
+                    return; 
+                }
+            }
+            if (!token || !user) { 
+                redirectToLogin();
+                return; 
+            } 
+            userInitialsHeader.textContent = `${user.first_name ? user.first_name.charAt(0) : 'U'}${user.last_name ? user.last_name.charAt(0) : 'S'}`.toUpperCase();
+            userPointsHeader.textContent = `Points: ${user.points || 0}`;
+
+            // --- Event Listeners ---
+            hintButton.addEventListener('click', async () => { 
+                if (hintButton.disabled || !currentLevelData || !currentLevelData.id) return;
+                try {
+                    const response = await fetch(`${API_BASE_URL}/api/levels/${currentLevelData.id}/hint`, {
+                        method: 'POST', 
+                        headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }
+                    });
+                    if (!response.ok) {
+                         const errData = await response.json().catch(() => ({detail: "Hint fetch failed."}));
+                        throw new Error(errData.detail || `Failed to fetch hint (${response.status})`);
+                    }
+                    const hintData = await response.json();
+                    
+                    // If it's brute force and the backend returned the password list via this general hint endpoint
+                    if (currentLevelData.type === 'brute-force' && hintData.hint_text.includes("Password list unlocked")) {
+                        if(bruteForceSpecificHintText) bruteForceSpecificHintText.textContent = hintData.hint_text;
+                        if(bruteForceSpecificHintArea) bruteForceSpecificHintArea.classList.remove('hidden');
+                        // Also show in message box for consistency if user clicked the main hint button
+                        showMessageBox(hintData.hint_text, null, null); 
+                    } else {
+                        showMessageBox(`Hint: ${escapeHTML(hintData.hint_text) || "No hint text."}`, null, null); 
+                    }
+                    hintButton.disabled = true; 
+                    hintButton.classList.add('bg-gray-500', 'text-gray-300', 'cursor-not-allowed');
+                    hintButton.classList.remove('bg-yellow-500', 'hover:bg-yellow-600', 'text-gray-900');
+                    hintButton.textContent = 'Hint Used';
+                } catch (err) {
+                    console.error("Error fetching hint:", err);
+                    showMessageBox(err.message || "Could not retrieve hint.", null, null); 
+                }
+            });
+
+
+            // --- Core Functions ---
+            async function loadLevel() {
+                const urlParams = new URLSearchParams(window.location.search);
+                const levelId = urlParams.get('level_id') || localStorage.getItem('currentChallengeId');
+                const mode = urlParams.get('mode') || localStorage.getItem('currentChallengeMode');
+
+                if (!levelId) {
+                    levelLoading.style.display = 'none';
+                    levelErrorMessage.textContent = 'No level specified. Please return to the dashboard.'; 
+                    levelErrorDiv.classList.remove('hidden');
+                    return;
+                }
+
+                try {
+                    const response = await fetch(`${API_BASE_URL}/api/levels/${levelId}`, { headers: { 'Authorization': `Bearer ${token}` } });
+                    if (!response.ok) {
+                        if (response.status === 401) { redirectToLogin(); return; }
+                        let errorDetail = `HTTP error! status: ${response.status}`;
+                        try { const errorData = await response.json(); errorDetail = errorData.detail || errorDetail; } 
+                        catch (parseError) { errorDetail = response.statusText || errorDetail; console.warn("Could not parse error response as JSON:", parseError); }
+                        throw new Error(errorDetail);
+                    }
+                    currentLevelData = await response.json();
+                    if (!currentLevelData || !currentLevelData.name) { 
+                        throw new Error("Received invalid level data structure from API.");
+                    }
+
+                    levelTitle.textContent = escapeHTML(currentLevelData.name);
+                    levelDifficulty.textContent = `Difficulty: ${escapeHTML(currentLevelData.difficulty)}`;
+                    videoConceptName.textContent = escapeHTML(currentLevelData.name); 
+                    
+                    videoPlayerContainer.innerHTML = ''; 
+                    if (currentLevelData.video_url && currentLevelData.video_url.startsWith("http")) {
+                        const videoButton = document.createElement('button');
+                        videoButton.className = 'btn-video'; 
+                        videoButton.innerHTML = `<i class="fas fa-play-circle mr-2"></i> Watch Related Video`;
+                        videoButton.onclick = () => { window.open(currentLevelData.video_url, '_blank'); };
+                        videoPlayerContainer.appendChild(videoButton);
+                    } else {
+                        const noVideoText = document.createElement('p');
+                        noVideoText.className = 'text-gray-400';
+                        noVideoText.textContent = "No introductory video link available for this level.";
+                        videoPlayerContainer.appendChild(noVideoText);
+                    }
+                    videoDescription.textContent = escapeHTML(currentLevelData.video_description) || `Learn about ${escapeHTML(currentLevelData.name)}.`;
+
+                    challengeItself.innerHTML = ''; 
+                    renderChallengeUI(currentLevelData.type || currentLevelData.id.split('-')[0], currentLevelData); 
+
+                    levelLoading.style.display = 'none';
+                    levelContent.classList.remove('hidden');
+                    levelErrorDiv.classList.add('hidden'); 
+                    
+                    // Display brute-force specific hint if conditions are met from loaded data
+                    if (currentLevelData.type === 'brute-force') {
+                        if (currentLevelData.failed_attempts >= 5 && currentLevelData.password_hint_list && currentLevelData.password_hint_list.length > 0) {
+                            bruteForceSpecificHintText.textContent = `Hint Unlocked: The target password is one of these: ${escapeHTML(currentLevelData.password_hint_list.join(', '))}.`;
+                            bruteForceSpecificHintArea.classList.remove('hidden');
+                        } else {
+                            bruteForceSpecificHintArea.classList.add('hidden');
+                        }
+                    }
+                    startHintTimer(); 
+                    if (mode === 'timed') { startStopwatch(); }
+
+                } catch (error) {
+                    console.error('Failed to load level:', error);
+                    levelLoading.style.display = 'none';
+                    levelErrorMessage.textContent = `Failed to load level content: ${error.message}`; 
+                    levelErrorDiv.classList.remove('hidden');
+                }
+            }
+            
+            function togglePasswordVisibility(inputField, button) {
+                if (!inputField || !button) return;
+                const icon = button.querySelector('i');
+                if (!icon) return;
+                if (inputField.type === "password") {
+                    inputField.type = "text"; icon.classList.remove("fa-eye"); icon.classList.add("fa-eye-slash");
+                } else {
+                    inputField.type = "password"; icon.classList.remove("fa-eye-slash"); icon.classList.add("fa-eye");
+                }
+            }
+
+            function addEnterKeyListener(inputElement, buttonElement) {
+                if (inputElement && buttonElement) {
+                    inputElement.addEventListener('keypress', function(event) {
+                        if (event.key === 'Enter') {
+                            event.preventDefault(); 
+                            buttonElement.click();
+                        }
+                    });
+                } else {
+                    console.warn("Could not add Enter key listener for:", inputElement, "and", buttonElement);
+                }
+            }
+
+
+            function renderChallengeUI(levelType, levelData) {
+                challengeItself.innerHTML = ''; 
+                const commonInputClasses = "w-full mt-1 px-3 py-2 border border-gray-600 rounded-md bg-gray-700 text-white focus:ring-indigo-500 focus:border-indigo-500";
+                const btnActionClasses = "bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 px-4 rounded-lg shadow-md transition-colors w-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-indigo-500";
+                const instructionsContainerClasses = "mt-6 p-4 bg-gray-700 rounded-md"; 
+                const initialInstructionsHTML = levelData.instructions ? `<p class="text-sm text-gray-400">${escapeHTML(levelData.instructions)}</p>` : '<p class="text-sm text-gray-400">No specific instructions provided for this section.</p>';
+
+                switch(levelType.toLowerCase()) {
+                    case 'brute-force':
+                    case 'bruteforce': 
+                        challengeItself.innerHTML = `
+                            <p class="text-gray-300 mb-4">${escapeHTML(levelData.description) || "Attempt to uncover the correct username and password."}</p>
+                            <div class="space-y-4 max-w-sm mx-auto">
+                                <div>
+                                    <label for="challengeUsername" class="block text-sm font-medium text-gray-300">Username</label>
+                                    <input type="text" id="challengeUsername" class="${commonInputClasses}" placeholder="e.g., admin" value="admin" readonly>
+                                </div>
+                                <div>
+                                    <label for="challengePassword" class="block text-sm font-medium text-gray-300">Password</label>
+                                    <div class="relative mt-1">
+                                        <input type="password" id="challengePassword" class="w-full pr-10 ${commonInputClasses.replace('w-full ','')}" placeholder="Enter password attempt">
+                                        <button type="button" id="toggleChallengePassword" class="absolute inset-y-0 right-0 px-3 flex items-center text-gray-400 hover:text-gray-200 focus:outline-none">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <button id="submitAttempt" class="${btnActionClasses}">Attempt Login</button>
+                                <p id="attemptMessage" class="text-center text-sm mt-2 h-5"></p> 
+                            </div>
+                            <div class="${instructionsContainerClasses}">
+                                <h4 class="font-semibold text-indigo-300 mb-2">Guidance & Clues:</h4>
+                                ${initialInstructionsHTML} 
+                            </div>
+                        `;
+                        const bfSubmitButton = document.getElementById('submitAttempt');
+                        const challengeUsernameField = document.getElementById('challengeUsername'); 
+                        const challengePasswordField = document.getElementById('challengePassword');
+                        const toggleChallengePasswordButton = document.getElementById('toggleChallengePassword');
+
+                        if(bfSubmitButton && challengeUsernameField && challengePasswordField) { 
+                            bfSubmitButton.addEventListener('click', () => submitAttemptToServer(levelData.id, { 
+                                username: challengeUsernameField.value, 
+                                password: challengePasswordField.value
+                            }));
+                            addEnterKeyListener(challengePasswordField, bfSubmitButton); 
+                        } else { console.error("Brute force form elements not found"); }
+                        
+                        if(toggleChallengePasswordButton && challengePasswordField){
+                            toggleChallengePasswordButton.addEventListener('click', () => togglePasswordVisibility(challengePasswordField, toggleChallengePasswordButton));
+                        } else { console.error("Brute force password toggle elements not found"); }
+                        break;
+                    case 'steganography':
+                         challengeItself.innerHTML = `
+                            <p class="text-gray-300 mb-4">${escapeHTML(levelData.description) || "A secret message or flag is concealed within the image provided."}</p>
+                            <div class="text-center mb-4">
+                                <img id="stegoImage" src="${escapeHTML(levelData.image_url) || 'https://placehold.co/600x400/1f2937/e5e7eb?text=Challenge+Image'}" alt="Steganography Challenge Image" class="mx-auto rounded-lg shadow-md max-w-full h-auto" style="max-height: 400px; display: block;">
+                                <button id="downloadStegoImage" class="btn-download mt-3">
+                                    <i class="fas fa-download mr-2"></i>Download Image
+                                </button>
+                            </div>
+                            <div class="space-y-4 max-w-sm mx-auto">
+                                <div>
+                                    <label for="flagInput" class="block text-sm font-medium text-gray-300">Enter Discovered Flag:</label>
+                                    <input type="text" id="flagInput" class="${commonInputClasses}" placeholder="Format: FLAG{...}">
+                                </div>
+                                <button id="submitAttempt" class="${btnActionClasses}">Submit Flag</button>
+                                <p id="attemptMessage" class="text-center text-sm mt-2 h-5"></p>
+                            </div>
+                            <div class="${instructionsContainerClasses}">
+                                <h4 class="font-semibold text-indigo-300 mb-2">Guidance & Clues:</h4>
+                                ${initialInstructionsHTML}
+                            </div>
+                        `;
+                        const stegoSubmitButton = document.getElementById('submitAttempt');
+                        const flagInputField = document.getElementById('flagInput');
+                        const downloadStegoImageButton = document.getElementById('downloadStegoImage');
+                        const stegoImage = document.getElementById('stegoImage');
+
+                        if(stegoSubmitButton && flagInputField) {
+                            stegoSubmitButton.addEventListener('click', () => submitAttemptToServer(levelData.id, flagInputField.value));
+                            addEnterKeyListener(flagInputField, stegoSubmitButton);
+                        } else { console.error("Steganography form elements not found for submission"); }
+
+                        if(downloadStegoImageButton && stegoImage && levelData.image_url) {
+                            downloadStegoImageButton.addEventListener('click', () => {
+                                const link = document.createElement('a');
+                                link.href = stegoImage.src; 
+                                let filename = "challenge_image.jpg"; 
+                                try {
+                                    const urlParts = levelData.image_url.split('/');
+                                    if (urlParts.length > 0 && urlParts[urlParts.length - 1]) {
+                                        filename = urlParts[urlParts.length - 1];
+                                    }
+                                } catch(e) { console.warn("Could not parse filename from image_url");}
+                                link.download = filename; 
+                                document.body.appendChild(link);
+                                link.click();
+                                document.body.removeChild(link);
+                            });
+                        } else { console.warn("Steganography download button or image element not found, or image_url missing in levelData.");}
+                        break;
+                    
+                    case 'packet-sniffing':
+                        challengeItself.innerHTML = `
+                            <p class="text-gray-300 mb-4">${escapeHTML(levelData.description) || "Sniff the network traffic to find the credentials."}</p>
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                <div class="md:col-span-1 bg-gray-700 p-4 rounded-lg">
+                                    <h4 class="font-semibold text-indigo-300 mb-2">Network Tools</h4>
+                                    <p class="text-sm text-gray-400 mb-2">Use "MiniShark" to capture packets.</p>
+                                    <button id="startSniffingButton" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-3 rounded-lg text-sm">Start Sniffing</button>
+                                    <p class="text-xs text-gray-500 mt-1">Click to see simulated traffic.</p>
+                                </div>
+                                <div class="md:col-span-2">
+                                    <label for="packetDisplay" class="block text-sm font-medium text-gray-300 mb-1">Captured Traffic (MiniShark)</label>
+                                    <div id="packetDisplay" class="packet-display">Waiting to start sniffing...</div>
+                                </div>
+                            </div>
+                            <div class="mt-6 max-w-md mx-auto space-y-4">
+                                <div>
+                                    <label for="sniffedUsername" class="block text-sm font-medium text-gray-300">Captured Username:</label>
+                                    <input type="text" id="sniffedUsername" class="${commonInputClasses}" placeholder="e.g., Username">
+                                </div>
+                                <div>
+                                    <label for="sniffedPassword" class="block text-sm font-medium text-gray-300">Captured Password:</label>
+                                    <input type="text" id="sniffedPassword" class="${commonInputClasses}" placeholder="e.g., Password">
+                                </div>
+                                <button id="submitAttempt" class="${btnActionClasses}">Submit Credentials</button>
+                                <p id="attemptMessage" class="text-center text-sm mt-2 h-5"></p>
+                            </div>
+                             <div class="${instructionsContainerClasses}">
+                                <h4 class="font-semibold text-indigo-300 mb-2">Guidance & Clues:</h4>
+                                ${initialInstructionsHTML}
+                            </div>
+                        `;
+                        const startSniffingButton = document.getElementById('startSniffingButton');
+                        const packetDisplay = document.getElementById('packetDisplay');
+                        const psSubmitButton = document.getElementById('submitAttempt');
+                        const sniffedUsernameField = document.getElementById('sniffedUsername');
+                        const sniffedPasswordField = document.getElementById('sniffedPassword');
+                        
+                        if (startSniffingButton && packetDisplay) {
+                            startSniffingButton.addEventListener('click', () => {
+                                packetDisplay.innerHTML = ''; 
+                                const actualUser = levelData.answer && levelData.answer.username ? levelData.answer.username : "HELXLO"; 
+                                const actualPass = levelData.answer && levelData.answer.password ? levelData.answer.password : "CONGRATULATIONSX"; 
+
+                                let packets = [
+                                    "[10.0.0.5 -> 192.168.1.100] TCP Handshake SYN",
+                                    `[10.0.0.15 → 192.168.1.1] GET /somepage.html HTTP/1.1`,
+                                    `[10.0.0.7 → other-site.com] GET /news.html HTTP/1.1`,
+                                    "--------------------------------------------------",
+                                    `[10.0.0.7 → vulnerable-site.com] POST /login HTTP/1.1\nHost: vulnerable-site.com\nContent-Type: application/x-www-form-urlencoded\n\nusername=CFSUPM&password=HMYQMRLZSMSKNAXA`, 
+                                    "--------------------------------------------------",
+                                    "[vulnerable-site.com → 10.0.0.7] HTTP/1.1 200 OK (Login Attempt Processed)",
+                                ];
+                                
+                                for (let k = packets.length - 1; k > 0; k--) {
+                                    const j = Math.floor(Math.random() * (k + 1));
+                                    [packets[k], packets[j]] = [packets[j], packets[k]]; 
+                                }
+
+                                let i = 0;
+                                startSniffingButton.disabled = true;
+                                startSniffingButton.textContent = "Sniffing...";
+                                const intervalId = setInterval(() => {
+                                    if (i < packets.length) {
+                                        const p = document.createElement('p');
+                                        p.textContent = packets[i]; 
+                                        packetDisplay.appendChild(p);
+                                        packetDisplay.scrollTop = packetDisplay.scrollHeight; 
+                                        i++;
+                                    } else {
+                                        clearInterval(intervalId);
+                                        startSniffingButton.disabled = false;
+                                        startSniffingButton.textContent = "Restart Sniffing";
+                                    }
+                                }, 700); 
+                            });
+                        }
+                        if(psSubmitButton && sniffedUsernameField && sniffedPasswordField) {
+                            psSubmitButton.addEventListener('click', () => submitAttemptToServer(levelData.id, {
+                                username: sniffedUsernameField.value,
+                                password: sniffedPasswordField.value
+                            }));
+                            addEnterKeyListener(sniffedUsernameField, psSubmitButton);
+                            addEnterKeyListener(sniffedPasswordField, psSubmitButton);
+                        } else { console.error("Packet sniffing form elements not found"); }
+                        break;
+                    case 'directory-traversal':
+                        challengeItself.innerHTML = `
+                            <p class="text-gray-300 mb-4">${escapeHTML(levelData.description) || "Explore the file system to find the secret."}</p>
+                            <div class="bg-gray-700 p-4 rounded-md mb-4">
+                                <p class="text-sm">Current Path: <span id="currentPathDisplay" class="font-mono text-yellow-300">/var/www/html/</span></p>
+                                <div class="mt-2 flex">
+                                    <input type="text" id="pathInput" class="${commonInputClasses.replace('mt-1', '')} rounded-r-none flex-grow" placeholder="../secrets/">
+                                    <button id="browsePathButton" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2 rounded-r-md text-sm">Browse</button>
+                                </div>
+                            </div>
+                            <div id="fileContentDisplay" class="packet-display min-h-[100px] mb-4">Enter a path above and click 'Browse'.</div>
+                            <div class="mt-6 max-w-md mx-auto space-y-4">
+                                <div>
+                                    <label for="flagInput" class="block text-sm font-medium text-gray-300">Enter Discovered Flag:</label>
+                                    <input type="text" id="flagInput" class="${commonInputClasses}" placeholder="FLAG{...}">
+                                </div>
+                                <button id="submitAttempt" class="${btnActionClasses}">Submit Flag</button>
+                                <p id="attemptMessage" class="text-center text-sm mt-2 h-5"></p>
+                            </div>
+                            <div class="${instructionsContainerClasses}">
+                                <h4 class="font-semibold text-indigo-300 mb-2">Guidance & Clues:</h4>
+                                ${initialInstructionsHTML}
+                            </div>
+                        `;
+                        const pathInput = document.getElementById('pathInput');
+                        const browsePathButton = document.getElementById('browsePathButton');
+                        const fileContentDisplay = document.getElementById('fileContentDisplay');
+                        const currentPathDisplay = document.getElementById('currentPathDisplay');
+                        const dtSubmitButton = document.getElementById('submitAttempt');
+                        const dtFlagInput = document.getElementById('flagInput');
+
+                        let simulatedCurrentPath = "/var/www/html/"; 
+
+                        const simulatedFileSystem = {
+                            "/var/www/html/": ["index.html", "images/", "css/"],
+                            "/var/www/html/images/": ["logo.png", "banner.jpg"],
+                            "/var/www/html/css/": ["style.css"],
+                            "/var/www/": ["html/", "logs/", "backup/"],
+                            "/var/": ["www/", "log/", "tmp/", "secrets/"],
+                            "/var/secrets/": ["admin_note.txt", "old_pass.bak"],
+                            "/var/secrets/admin_note.txt": "Congratulations! You found the secret note. The flag is: FLAG{S3RV3R_C0NF1G_M1ST4KE}",
+                            "/etc/": ["passwd", "shadow", "hosts"],
+                            "/etc/passwd": "root:x:0:0:root:/root:/bin/bash\ndaemon:x:1:1:daemon:/usr/sbin:/usr/sbin/nologin\n...",
+                        };
+
+                        if (browsePathButton && pathInput && fileContentDisplay && currentPathDisplay) {
+                            browsePathButton.addEventListener('click', () => {
+                                const enteredPath = pathInput.value.trim();
+                                let newPath = simulatedCurrentPath;
+                                if (enteredPath === "..") { 
+                                    const parts = newPath.split('/').filter(p => p.length > 0);
+                                    if (parts.length > 0) parts.pop();
+                                    newPath = "/" + parts.join('/') + (parts.length > 0 ? "/" : "");
+                                    if (newPath === "//") newPath = "/";
+                                } else if (enteredPath.startsWith("/")) { 
+                                    newPath = enteredPath;
+                                } else { 
+                                    newPath += enteredPath;
+                                }
+                                const pathSegments = [];
+                                newPath.split('/').forEach(segment => {
+                                    if (segment === "..") {
+                                        if (pathSegments.length > 0) pathSegments.pop();
+                                    } else if (segment !== "." && segment !== "") {
+                                        pathSegments.push(segment);
+                                    }
+                                });
+                                newPath = "/" + pathSegments.join("/") + (pathSegments.length > 0 && !simulatedFileSystem[("/" + pathSegments.join("/") + "/")] && simulatedFileSystem[("/" + pathSegments.join("/"))] ? "" : "/");
+                                if (newPath === "//") newPath = "/";
+
+                                simulatedCurrentPath = newPath; 
+                                currentPathDisplay.textContent = escapeHTML(simulatedCurrentPath);
+                                pathInput.value = ""; 
+
+                                if (simulatedFileSystem[simulatedCurrentPath]) {
+                                    if (Array.isArray(simulatedFileSystem[simulatedCurrentPath])) { 
+                                        fileContentDisplay.textContent = "Directory Listing:\n" + simulatedFileSystem[simulatedCurrentPath].map(item => `- ${item}`).join('\n');
+                                    } else { 
+                                        fileContentDisplay.textContent = escapeHTML(simulatedFileSystem[simulatedCurrentPath]);
+                                    }
+                                } else {
+                                    fileContentDisplay.textContent = "Path not found or access denied.";
+                                }
+                            });
+                            addEnterKeyListener(pathInput, browsePathButton); 
+                        }
+
+                        if(dtSubmitButton && dtFlagInput) {
+                           dtSubmitButton.addEventListener('click', () => submitAttemptToServer(levelData.id, dtFlagInput.value));
+                           addEnterKeyListener(dtFlagInput, dtSubmitButton);
+                        } else { console.error("Directory Traversal form elements not found"); }
+                        break;
+                    default:
+                        challengeItself.innerHTML = `<p class="text-gray-400">Challenge type "${escapeHTML(levelType)}" content is not available.</p>`;
+                }
+            }
+
+            async function submitAttemptToServer(levelId, submission) { 
+                console.log(`Submitting attempt for level: ${levelId}, submission:`, submission);
+                const attemptMessageElement = document.getElementById('attemptMessage'); 
+                
+                if (attemptMessageElement) { 
+                     attemptMessageElement.textContent = 'Checking...';
+                     attemptMessageElement.className = 'text-blue-400 text-center text-sm mt-2 h-5';
+                } else {
+                    console.warn("Attempt message element not found in current challenge UI when submitting.");
+                }
+
+                const urlParams = new URLSearchParams(window.location.search);
+                const mode = urlParams.get('mode') || localStorage.getItem('currentChallengeMode');
+
+                try {
+                    const response = await fetch(`${API_BASE_URL}/api/levels/${levelId}/submit`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                        body: JSON.stringify({ submission: submission, mode: mode, time_taken: mode === 'timed' ? secondsElapsed : null })
+                    });
+                    const result = await response.json();
+                    console.log("Submission result:", result);
+
+                    if (result.correct) {
+                        stopStopwatch(); 
+                        let successMsg = `Correct! Level completed. You earned ${result.points_awarded || 0} points.`;
+                        if (mode === 'timed' && result.rank) {
+                            successMsg += ` Finished in ${stopwatchDisplay.textContent}, ranked #${result.rank}.`;
+                        } else if (mode === 'timed') {
+                             successMsg += ` Finished in ${stopwatchDisplay.textContent}.`;
+                        }
+                        
+                        const userProfileResponse = await fetch(`${API_BASE_URL}/api/users/me`, { headers: { 'Authorization': `Bearer ${token}` } });
+                        if (userProfileResponse.ok) {
+                            const updatedUser = await userProfileResponse.json();
+                            localStorage.setItem('hackverseUser', JSON.stringify(updatedUser));
+                            if(userPointsHeader) userPointsHeader.textContent = `Points: ${updatedUser.points || 0}`;
+                        }
+
+                        showMessageBox(successMsg, result.prevention_tips || [], () => { redirectToDashboard(); }); 
+                        const submitButton = document.getElementById('submitAttempt'); 
+                        if(submitButton) submitButton.disabled = true;
+                    } else {
+                        if(attemptMessageElement) { 
+                            attemptMessageElement.textContent = result.message || 'Incorrect. Try again.';
+                            attemptMessageElement.className = 'text-red-400 text-center text-sm mt-2 h-5';
+                        } else {
+                             showMessageBox(result.message || 'Incorrect. Try again.', null, null); 
+                        }
+                        // For Brute Force, show the specific hint area if the backend message indicates it
+                        if (currentLevelData && currentLevelData.type === 'brute-force' && result.message && result.message.includes("Hint Unlocked")) {
+                            if(bruteForceSpecificHintText) bruteForceSpecificHintText.textContent = result.message.replace("Incorrect. ", ""); // Display the hint from the backend
+                            if(bruteForceSpecificHintArea) bruteForceSpecificHintArea.classList.remove('hidden');
+                        }
+                    }
+                } catch (error) { 
+                    console.error('Error submitting flag:', error);
+                    if(attemptMessageElement) {
+                        attemptMessageElement.textContent = 'Error submitting. Please try again.';
+                        attemptMessageElement.className = 'text-red-400 text-center text-sm mt-2 h-5';
+                    } else {
+                        showMessageBox('Error submitting. Please try again.', null, null);
+                    }
+                } 
+            }
+            
+            console.log("level.html script: About to call loadLevel().");
+            loadLevel(); 
+            console.log("level.html script: loadLevel() has been called.");
+        });
+        console.log("level.html script: DOMContentLoaded listener has been added.");
+    </script>
+</body>
+</html>

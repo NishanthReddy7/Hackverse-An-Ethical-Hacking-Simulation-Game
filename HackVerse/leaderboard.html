@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Leaderboard - Hackverse</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #111827; /* Tailwind gray-900 */
+            color: #e5e7eb; /* Tailwind gray-200 */
+        }
+        .nav-link {
+            @apply px-3 py-2 rounded-md text-sm font-medium text-gray-300 hover:bg-gray-700 hover:text-white transition-colors;
+        }
+        .header-icon {
+            @apply w-10 h-10 rounded-full bg-indigo-500 text-white flex items-center justify-center text-lg font-semibold;
+        }
+        .table-header { 
+            @apply px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider bg-gray-700; 
+        }
+        .table-cell { 
+            @apply px-6 py-4 whitespace-nowrap text-sm text-gray-200 bg-gray-800; 
+        }
+        .medal-container {
+            @apply relative inline-flex items-center justify-center w-8 h-8 rounded-full text-xs font-bold;
+        }
+        .medal-gold { @apply bg-yellow-500 text-yellow-900; }
+        .medal-silver { @apply bg-gray-400 text-gray-900; }
+        .medal-bronze { @apply bg-yellow-700 text-yellow-100; } /* Using amber/orange for bronze */
+        
+        .medal-icon { @apply absolute text-lg opacity-50; } /* For a subtle medal shape behind number */
+        .medal-number { @apply relative z-10; }
+
+        select {
+            @apply block w-full md:w-1/2 lg:w-1/3 mt-1 px-3 py-2 border border-gray-600 rounded-md shadow-sm 
+                   placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 
+                   bg-gray-700 text-white text-sm;
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <header class="bg-gray-800 shadow-lg sticky top-0 z-50">
+        <nav class="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <div class="flex items-center">
+                    <a href="index.html" class="text-2xl font-bold text-indigo-400">Hackverse</a>
+                    <div class="hidden md:ml-6 md:flex md:items-center md:space-x-4" id="loggedInNav">
+                        <a href="dashboard.html" class="nav-link">Dashboard</a>
+                        <a href="leaderboard.html" class="nav-link bg-gray-700 text-white">Leaderboard</a>
+                    </div>
+                </div>
+                <div class="flex items-center ml-3" id="userAuthStatus">
+                    {/* User icon or login/signup buttons will be injected by JS */}
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <main class="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <h1 class="text-4xl font-bold text-white mb-8 text-center">Leaderboards</h1>
+
+        <div class="mb-6">
+            <label for="levelSelect" class="block text-lg font-medium text-gray-200 mb-2">Select a Level:</label>
+            <select id="levelSelect" name="levelSelect">
+                <option value="">Loading levels...</option>
+            </select>
+        </div>
+
+        <div id="leaderboardLoading" class="text-center text-xl py-10 hidden">Loading leaderboard...</div>
+        <div id="leaderboardError" class="text-center text-xl py-10 text-red-400 hidden"></div>
+        
+        <div class="overflow-x-auto shadow-lg rounded-lg">
+            <table id="leaderboardTable" class="min-w-full divide-y divide-gray-600 hidden">
+                <thead>
+                    <tr>
+                        <th scope="col" class="table-header w-1/6">Rank</th>
+                        <th scope="col" class="table-header w-3/6">User Name</th>
+                        <th scope="col" class="table-header w-2/6">Time Taken</th>
+                    </tr>
+                </thead>
+                <tbody id="leaderboardTableBody" class="divide-y divide-gray-700">
+                </tbody>
+            </table>
+        </div>
+        <p id="noLeaderboardData" class="text-center text-gray-400 mt-6 hidden">No leaderboard data available for this level yet, or no timed challenges completed.</p>
+
+    </main>
+
+    <footer class="bg-gray-800 border-t border-gray-700 mt-12">
+        <div class="container mx-auto px-6 py-8 text-center text-gray-400">
+            <p>© <span id="currentYear"></span> Hackverse. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('currentYear').textContent = new Date().getFullYear();
+            const API_BASE_URL = 'http://localhost:8000';
+            const token = localStorage.getItem('hackverseToken');
+            const userString = localStorage.getItem('hackverseUser');
+            let currentUser = null;
+
+            const levelSelect = document.getElementById('levelSelect');
+            const leaderboardTable = document.getElementById('leaderboardTable');
+            const leaderboardTableBody = document.getElementById('leaderboardTableBody');
+            const leaderboardLoading = document.getElementById('leaderboardLoading');
+            const leaderboardError = document.getElementById('leaderboardError');
+            const noLeaderboardData = document.getElementById('noLeaderboardData');
+            const userAuthStatusContainer = document.getElementById('userAuthStatus');
+
+
+            function setupUserAuthDisplay() {
+                if (userString) {
+                    try { currentUser = JSON.parse(userString); } catch (e) {
+                        console.error("Error parsing current user data:", e);
+                        localStorage.removeItem('hackverseUser'); localStorage.removeItem('hackverseToken');
+                        // No redirect here, just show login/signup
+                    }
+                }
+
+                if (token && currentUser) {
+                    userAuthStatusContainer.innerHTML = `
+                        <span class="text-gray-300 mr-3" id="userPoints">Points: ${currentUser.points || 0}</span>
+                        <div id="userInitials" class="header-icon">${currentUser.first_name ? currentUser.first_name.charAt(0) : ''}${currentUser.last_name ? currentUser.last_name.charAt(0) : ''}</div>
+                        <button id="logoutButtonLeaderboard" class="ml-3 nav-link">Logout</button>
+                    `;
+                    document.getElementById('logoutButtonLeaderboard').addEventListener('click', () => {
+                        localStorage.removeItem('hackverseUser');
+                        localStorage.removeItem('hackverseToken');
+                        window.location.href = 'index.html';
+                    });
+                     // Show loggedInNav if it exists
+                    const loggedInNav = document.getElementById('loggedInNav');
+                    if(loggedInNav) loggedInNav.classList.remove('hidden');
+
+                } else {
+                     userAuthStatusContainer.innerHTML = `
+                        <a href="login.html" class="bg-gray-600 hover:bg-gray-700 text-white font-semibold py-2 px-3 rounded-lg text-sm">Sign In</a>
+                        <a href="signup.html" class="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 px-3 rounded-lg text-sm ml-2">Sign Up</a>
+                    `;
+                    // Hide loggedInNav if it exists
+                    const loggedInNav = document.getElementById('loggedInNav');
+                    if(loggedInNav) loggedInNav.classList.add('hidden');
+                }
+            }
+
+
+            async function fetchLevelsForDropdown() {
+                if (!token) { // Leaderboard might be public, but fetching levels might still require auth or a public endpoint
+                    levelSelect.innerHTML = '<option value="">Please log in to see levels</option>';
+                    console.warn("No token found, cannot fetch levels for dropdown if endpoint is protected.");
+                    // If you have a public endpoint for levels, use that here.
+                    // For now, assuming it needs auth like other level fetches.
+                    return;
+                }
+                try {
+                    const response = await fetch(`${API_BASE_URL}/api/levels`, {
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    });
+                    if (!response.ok) {
+                        throw new Error(`Failed to fetch levels: ${response.status}`);
+                    }
+                    const levels = await response.json();
+                    levelSelect.innerHTML = '<option value="">-- Select a Level --</option>'; // Default option
+                    levels.forEach(level => {
+                        const option = document.createElement('option');
+                        option.value = level.id;
+                        option.textContent = level.name;
+                        levelSelect.appendChild(option);
+                    });
+                } catch (error) {
+                    console.error("Error fetching levels for dropdown:", error);
+                    levelSelect.innerHTML = '<option value="">Error loading levels</option>';
+                }
+            }
+
+            function formatTime(totalSeconds) {
+                const minutes = Math.floor(totalSeconds / 60);
+                const seconds = totalSeconds % 60;
+                return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            }
+
+            function getMedalHTML(rank) {
+                let medalClass = '';
+                let iconClass = 'fas fa-medal'; // Default medal icon
+
+                if (rank === 1) medalClass = 'medal-gold';
+                else if (rank === 2) medalClass = 'medal-silver';
+                else if (rank === 3) medalClass = 'medal-bronze';
+                else return rank; // For ranks > 3, just return the number
+
+                return `
+                    <div class="${medalClass} medal-container">
+                        <i class="${iconClass} medal-icon"></i>
+                        <span class="medal-number">${rank}</span>
+                    </div>
+                `;
+            }
+
+
+            async function fetchLeaderboard(levelId) {
+                if (!levelId) {
+                    leaderboardTableBody.innerHTML = '';
+                    leaderboardTable.classList.add('hidden');
+                    noLeaderboardData.classList.remove('hidden');
+                    noLeaderboardData.textContent = 'Please select a level to view its leaderboard.';
+                    return;
+                }
+
+                leaderboardLoading.classList.remove('hidden');
+                leaderboardError.classList.add('hidden');
+                leaderboardTable.classList.add('hidden');
+                noLeaderboardData.classList.add('hidden');
+
+                try {
+                    const response = await fetch(`${API_BASE_URL}/api/leaderboard/${levelId}`, {
+                        headers: { 'Authorization': `Bearer ${token}` } // Assuming leaderboard needs auth
+                    });
+                    if (!response.ok) {
+                        const errData = await response.json().catch(() => ({detail: `Error: ${response.status}`}));
+                        throw new Error(errData.detail || `Failed to fetch leaderboard for ${levelId}`);
+                    }
+                    const leaderboardData = await response.json();
+                    
+                    leaderboardTableBody.innerHTML = ''; // Clear previous entries
+                    if (leaderboardData && leaderboardData.length > 0) {
+                        leaderboardData.forEach((entry, index) => {
+                            const rank = index + 1;
+                            const row = leaderboardTableBody.insertRow();
+                            
+                            const rankCell = row.insertCell();
+                            rankCell.className = 'table-cell text-center'; // Center rank and medal
+                            rankCell.innerHTML = getMedalHTML(rank);
+
+                            const nameCell = row.insertCell();
+                            nameCell.className = 'table-cell';
+                            nameCell.textContent = entry.user_name || 'Anonymous';
+                            
+                            const timeCell = row.insertCell();
+                            timeCell.className = 'table-cell';
+                            timeCell.textContent = formatTime(entry.time_taken);
+                        });
+                        leaderboardTable.classList.remove('hidden');
+                    } else {
+                        noLeaderboardData.classList.remove('hidden');
+                        noLeaderboardData.textContent = 'No leaderboard data available for this level yet, or no timed challenges completed.';
+                    }
+
+                } catch (error) {
+                    console.error(`Error fetching leaderboard for ${levelId}:`, error);
+                    leaderboardError.textContent = `Error loading leaderboard: ${error.message}`;
+                    leaderboardError.classList.remove('hidden');
+                } finally {
+                    leaderboardLoading.classList.add('hidden');
+                }
+            }
+
+            levelSelect.addEventListener('change', function() {
+                fetchLeaderboard(this.value);
+            });
+            
+            setupUserAuthDisplay();
+            fetchLevelsForDropdown(); 
+        });
+    </script>
+</body>
+</html>

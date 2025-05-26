@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Up - Hackverse</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #111827; /* Tailwind gray-900 */
+            color: #e5e7eb; /* Tailwind gray-200 */
+        }
+        .error-message-custom {
+            color: #f87171; /* Tailwind red-400 */
+            font-size: 0.875rem; /* Tailwind text-sm */
+            margin-top: 0.25rem; 
+        }
+        .success-message-custom {
+            color: #34d399; /* Tailwind green-400 */
+            font-size: 0.875rem; /* Tailwind text-sm */
+            margin-top: 0.25rem; 
+        }
+        .password-strength-meter {
+            height: 5px;
+            width: 100%;
+            background-color: #374151; /* Tailwind gray-700 */
+            border-radius: 5px;
+            margin-top: 0.5rem;
+            overflow: hidden;
+        }
+        .strength-bar {
+            height: 100%;
+            width: 0%;
+            transition: width 0.3s ease-in-out, background-color 0.3s ease-in-out;
+        }
+        .strength-weak { background-color: #ef4444; /* Tailwind red-500 */ }
+        .strength-medium { background-color: #f59e0b; /* Tailwind amber-500 */ }
+        .strength-strong { background-color: #22c55e; /* Tailwind green-500 */ }
+
+        .password-criteria { font-size: 0.75rem; /* Tailwind text-xs */ margin-top: 0.25rem; }
+        .criteria-met { color: #22c55e; /* Tailwind green-500 */ }
+        .criteria-unmet { color: #f87171; /* Tailwind red-400 */ }
+    </style>
+</head>
+<body class="antialiased flex items-center justify-center min-h-screen p-4">
+
+    <div class="bg-gray-800 p-8 rounded-xl shadow-2xl w-full max-w-md">
+        <div class="text-center mb-8">
+            <a href="index.html" class="text-3xl font-bold text-indigo-400">Hackverse</a>
+            <h2 class="mt-2 text-2xl font-semibold text-white">Create your account</h2>
+        </div>
+
+        <form id="signupForm" class="space-y-6">
+            <div>
+                <label for="firstName" class="block text-sm font-medium text-gray-300">First Name</label>
+                <input type="text" name="firstName" id="firstName" required class="w-full mt-1 px-3 py-2 border border-gray-600 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 bg-gray-700 text-white">
+                <p id="firstNameError" class="error-message-custom"></p>
+            </div>
+            <div>
+                <label for="lastName" class="block text-sm font-medium text-gray-300">Last Name</label>
+                <input type="text" name="lastName" id="lastName" required class="w-full mt-1 px-3 py-2 border border-gray-600 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 bg-gray-700 text-white">
+                <p id="lastNameError" class="error-message-custom"></p>
+            </div>
+            <div>
+                <label for="email" class="block text-sm font-medium text-gray-300">Email address</label>
+                <input type="email" name="email" id="email" autocomplete="email" required class="w-full mt-1 px-3 py-2 border border-gray-600 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 bg-gray-700 text-white">
+                <p id="emailError" class="error-message-custom"></p>
+            </div>
+            
+            <div>
+                <label for="password" class="block text-sm font-medium text-gray-300">Password</label>
+                <div class="relative mt-1">
+                    <input type="password" name="password" id="password" autocomplete="new-password" required class="w-full pr-10 px-3 py-2 border border-gray-600 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 bg-gray-700 text-white">
+                    <button type="button" id="togglePassword" class="absolute inset-y-0 right-0 px-3 flex items-center text-gray-400 hover:text-gray-200 focus:outline-none">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                </div>
+                <div id="passwordStrengthMeter" class="password-strength-meter">
+                    <div id="strengthBar" class="strength-bar"></div>
+                </div>
+                <div id="passwordCriteria" class="mt-1 space-y-px">
+                    <p id="critLength" class="password-criteria criteria-unmet"><i class="fas fa-times-circle mr-1"></i>At least 8 characters</p>
+                    <p id="critUpper" class="password-criteria criteria-unmet"><i class="fas fa-times-circle mr-1"></i>An uppercase letter</p>
+                    <p id="critLower" class="password-criteria criteria-unmet"><i class="fas fa-times-circle mr-1"></i>A lowercase letter</p>
+                    <p id="critNumber" class="password-criteria criteria-unmet"><i class="fas fa-times-circle mr-1"></i>A number</p>
+                    <p id="critSpecial" class="password-criteria criteria-unmet"><i class="fas fa-times-circle mr-1"></i>A special character (@$!%*?&)</p>
+                </div>
+            </div>
+
+            <div>
+                <label for="confirmPassword" class="block text-sm font-medium text-gray-300">Confirm Password</label>
+                <div class="relative mt-1">
+                    <input type="password" name="confirmPassword" id="confirmPassword" autocomplete="new-password" required class="w-full pr-10 px-3 py-2 border border-gray-600 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 bg-gray-700 text-white">
+                    <button type="button" id="toggleConfirmPassword" class="absolute inset-y-0 right-0 px-3 flex items-center text-gray-400 hover:text-gray-200 focus:outline-none">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                </div>
+                <p id="confirmPasswordError" class="error-message-custom"></p>
+            </div>
+
+            <div id="formMessage" class="text-center h-5"></div>
+
+            <div>
+                <button type="submit" id="signUpButton" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 px-4 rounded-lg shadow-md transition-transform transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-indigo-500">
+                    Sign Up
+                </button>
+            </div>
+        </form>
+
+        <p class="mt-6 text-center text-sm text-gray-400">
+            Already have an account?
+            <a href="login.html" class="font-medium text-indigo-400 hover:text-indigo-300">
+                Sign In
+            </a>
+        </p>
+    </div> <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const signupForm = document.getElementById('signupForm');
+            const formMessage = document.getElementById('formMessage'); 
+            const firstNameError = document.getElementById('firstNameError');
+            const lastNameError = document.getElementById('lastNameError');
+            const emailError = document.getElementById('emailError');
+            const confirmPasswordError = document.getElementById('confirmPasswordError');
+            
+            const API_BASE_URL = 'http://localhost:8000'; 
+
+            const passwordInput = document.getElementById('password'); 
+            const togglePasswordButton = document.getElementById('togglePassword'); 
+            const confirmPasswordInput = document.getElementById('confirmPassword');
+            const toggleConfirmPasswordButton = document.getElementById('toggleConfirmPassword');
+            
+            const strengthBar = document.getElementById('strengthBar');
+            const critLength = document.getElementById('critLength');
+            const critUpper = document.getElementById('critUpper');
+            const critLower = document.getElementById('critLower');
+            const critNumber = document.getElementById('critNumber');
+            const critSpecial = document.getElementById('critSpecial');
+            const signUpButton = document.getElementById('signUpButton');
+
+            if (!signupForm || !passwordInput || !togglePasswordButton || !confirmPasswordInput || !toggleConfirmPasswordButton || !strengthBar || !signUpButton || !critLength || !critUpper || !critLower || !critNumber || !critSpecial || !formMessage) {
+                console.error("One or more essential signup form elements were not found in the DOM. Check IDs.");
+                if (formMessage) { 
+                    formMessage.textContent = "Page initialization error. Please refresh.";
+                    formMessage.className = 'error-message-custom text-center mb-4';
+                }
+                return; 
+            }
+
+            function togglePasswordVisibility(inputField, button) {
+                const icon = button.querySelector('i');
+                if (inputField.type === "password") {
+                    inputField.type = "text";
+                    icon.classList.remove("fa-eye");
+                    icon.classList.add("fa-eye-slash");
+                } else {
+                    inputField.type = "password";
+                    icon.classList.remove("fa-eye-slash");
+                    icon.classList.add("fa-eye");
+                }
+            }
+
+            togglePasswordButton.addEventListener('click', () => togglePasswordVisibility(passwordInput, togglePasswordButton));
+            toggleConfirmPasswordButton.addEventListener('click', () => togglePasswordVisibility(confirmPasswordInput, toggleConfirmPasswordButton));
+
+            function updateCriteriaStatus(element, isMet) {
+                if (!element) return; 
+                const icon = element.querySelector('i');
+                if (!icon) return; 
+
+                if (isMet) {
+                    element.classList.remove('criteria-unmet');
+                    element.classList.add('criteria-met');
+                    icon.classList.remove('fa-times-circle');
+                    icon.classList.add('fa-check-circle');
+                } else {
+                    element.classList.remove('criteria-met');
+                    element.classList.add('criteria-unmet');
+                    icon.classList.remove('fa-check-circle');
+                    icon.classList.add('fa-times-circle');
+                }
+            }
+            
+            let allCriteriaMet = false;
+
+            passwordInput.addEventListener('input', () => {
+                const pass = passwordInput.value;
+                let strength = 0;
+                let metCount = 0;
+
+                const lengthMet = pass.length >= 8;
+                updateCriteriaStatus(critLength, lengthMet);
+                if (lengthMet) { strength++; metCount++; }
+
+                const upperMet = /[A-Z]/.test(pass);
+                updateCriteriaStatus(critUpper, upperMet);
+                if (upperMet) { strength++; metCount++; }
+                
+                const lowerMet = /[a-z]/.test(pass);
+                updateCriteriaStatus(critLower, lowerMet);
+                if (lowerMet) { strength++; metCount++; }
+
+                const numberMet = /[0-9]/.test(pass);
+                updateCriteriaStatus(critNumber, numberMet);
+                if (numberMet) { strength++; metCount++; }
+
+                const specialMet = /[@$!%*?&]/.test(pass);
+                updateCriteriaStatus(critSpecial, specialMet);
+                if (specialMet) { strength++; metCount++; }
+
+                allCriteriaMet = metCount === 5;
+
+                strengthBar.classList.remove('strength-weak', 'strength-medium', 'strength-strong');
+                if (strength <= 2) {
+                    strengthBar.style.width = (strength / 5 * 100) + '%';
+                    if (strength > 0) strengthBar.classList.add('strength-weak'); else strengthBar.style.width = '0%';
+                } else if (strength <= 4) {
+                    strengthBar.style.width = (strength / 5 * 100) + '%';
+                    strengthBar.classList.add('strength-medium');
+                } else {
+                    strengthBar.style.width = '100%';
+                    strengthBar.classList.add('strength-strong');
+                }
+                
+                const passwordCriteriaDiv = document.getElementById('passwordCriteria');
+                if(passwordCriteriaDiv){ 
+                    if(allCriteriaMet && pass.length > 0) { // Only hide if all met AND password is not empty
+                        passwordCriteriaDiv.style.display = 'none';
+                    } else {
+                        passwordCriteriaDiv.style.display = 'block';
+                    }
+                }
+            });
+
+
+            function clearFormErrors() {
+                if(firstNameError) firstNameError.textContent = '';
+                if(lastNameError) lastNameError.textContent = '';
+                if(emailError) emailError.textContent = '';
+                if(confirmPasswordError) confirmPasswordError.textContent = '';
+                if(formMessage) formMessage.textContent = ''; 
+            }
+
+            signupForm.addEventListener('submit', async function(event) {
+                event.preventDefault();
+                clearFormErrors(); 
+
+                const firstName = document.getElementById('firstName').value.trim();
+                const lastName = document.getElementById('lastName').value.trim();
+                const email = document.getElementById('email').value.trim();
+                const password = passwordInput.value; 
+                const confirmPassword = confirmPasswordInput.value;
+
+                let isValid = true;
+
+                if (!firstName) {
+                    if(firstNameError) firstNameError.textContent = 'First name is required.';
+                    isValid = false;
+                }
+                if (!lastName) {
+                    if(lastNameError) lastNameError.textContent = 'Last name is required.';
+                    isValid = false;
+                }
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                if (!email || !emailRegex.test(email)) { 
+                    if(emailError) emailError.textContent = 'A valid email is required.';
+                    isValid = false;
+                }
+                
+                if (!allCriteriaMet) { 
+                    if(formMessage) {
+                        formMessage.textContent = 'Password does not meet all criteria.';
+                        formMessage.className = 'error-message-custom text-center mb-4';
+                    }
+                    isValid = false;
+                }
+
+                if (password !== confirmPassword) {
+                    if(confirmPasswordError) confirmPasswordError.textContent = 'Passwords do not match.';
+                    isValid = false;
+                }
+                
+                if (!isValid) {
+                    if(formMessage && !formMessage.textContent) { 
+                         formMessage.textContent = 'Please correct the errors above.';
+                         formMessage.className = 'error-message-custom text-center mb-4';
+                    }
+                    return;
+                }
+
+                if(formMessage) {
+                    formMessage.textContent = 'Processing...';
+                    formMessage.className = 'text-blue-400 text-sm text-center mb-4';
+                }
+                signUpButton.disabled = true;
+
+
+                try {
+                    const response = await fetch(`${API_BASE_URL}/api/users/signup`, { 
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', },
+                        body: JSON.stringify({ first_name: firstName, last_name: lastName, email, password }),
+                    });
+
+                    const data = await response.json(); 
+
+                    if (response.ok) { 
+                        if(formMessage) {
+                            formMessage.textContent = 'Sign up successful! Redirecting to login...';
+                            formMessage.className = 'success-message-custom text-center mb-4';
+                        }
+                        setTimeout(() => { window.location.href = 'login.html'; }, 2000);
+                    } else { 
+                        let errorMessageText = data.detail || `Sign up failed. Status: ${response.status}`;
+                        if (response.status === 422 && data.detail && Array.isArray(data.detail)) {
+                            errorMessageText = "Please check the following fields: ";
+                            const fieldErrors = [];
+                            data.detail.forEach(err => {
+                                const fieldName = err.loc[1] || 'general'; 
+                                fieldErrors.push(`${fieldName}: ${err.msg}`);
+                                if (fieldName === "first_name" && firstNameError) firstNameError.textContent = err.msg;
+                                else if (fieldName === "last_name" && lastNameError) lastNameError.textContent = err.msg;
+                                else if (fieldName === "email" && emailError) emailError.textContent = err.msg;
+                            });
+                            errorMessageText += fieldErrors.join(', ');
+                        }
+                        if(formMessage) {
+                            formMessage.textContent = errorMessageText;
+                            formMessage.className = 'error-message-custom text-center mb-4';
+                        }
+                    }
+                } catch (error) { 
+                    console.error('Sign up error:', error);
+                    if(formMessage) {
+                        formMessage.textContent = 'An error occurred. Please try again later. (Network or client-side issue)';
+                        formMessage.className = 'error-message-custom text-center mb-4';
+                    }
+                } finally {
+                    signUpButton.disabled = false;
+                }
+            });
+        });
+    </script>
+</body>
+</html>

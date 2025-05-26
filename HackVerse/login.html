@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign In - Hackverse</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #111827; 
+            color: #e5e7eb; 
+        }
+        .error-message-custom { 
+            color: #f87171; 
+            font-size: 0.875rem; 
+            margin-top: 0.25rem; 
+        }
+         .success-message-custom { 
+            color: #34d399; 
+            font-size: 0.875rem; 
+            margin-top: 0.25rem; 
+        }
+    </style>
+</head>
+<body class="antialiased flex items-center justify-center min-h-screen p-4">
+
+    <div class="bg-gray-800 p-8 rounded-xl shadow-2xl w-full max-w-md">
+        <div class="text-center mb-8">
+            <a href="index.html" class="text-3xl font-bold text-indigo-400">Hackverse</a>
+            <h2 class="mt-2 text-2xl font-semibold text-white">Sign in to your account</h2>
+        </div>
+
+        <form id="loginForm" class="space-y-6">
+            <div>
+                <label for="email" class="block text-sm font-medium text-gray-300">Email address</label>
+                <input type="email" name="email" id="email" autocomplete="email" required class="w-full mt-1 px-3 py-2 border border-gray-600 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 bg-gray-700 text-white">
+            </div>
+            <div>
+                <label for="password" class="block text-sm font-medium text-gray-300">Password</label>
+                <div class="relative mt-1">
+                    <input type="password" name="password" id="password" autocomplete="current-password" required class="w-full pr-10 px-3 py-2 border border-gray-600 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 bg-gray-700 text-white">
+                    <button type="button" id="togglePassword" class="absolute inset-y-0 right-0 px-3 flex items-center text-gray-400 hover:text-gray-200 focus:outline-none">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div id="formMessage" class="text-center h-5"></div>
+
+            <div class="flex items-center justify-between">
+                <div class="flex items-center">
+                    <input id="remember-me" name="remember-me" type="checkbox" class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-500 rounded bg-gray-700">
+                    <label for="remember-me" class="ml-2 block text-sm text-gray-300">
+                        Remember me
+                    </label>
+                </div>
+            </div>
+
+            <div>
+                <button type="submit" id="signInButton" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 px-4 rounded-lg shadow-md transition-transform transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-indigo-500">
+                    Sign In
+                </button>
+            </div>
+        </form>
+
+        <p class="mt-6 text-center text-sm text-gray-400">
+            Not a member?
+            <a href="signup.html" class="font-medium text-indigo-400 hover:text-indigo-300">
+                Sign Up
+            </a>
+        </p>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const loginForm = document.getElementById('loginForm');
+            const formMessage = document.getElementById('formMessage'); 
+            const API_BASE_URL = 'http://localhost:8000'; 
+            const passwordInput = document.getElementById('password'); 
+            const togglePasswordButton = document.getElementById('togglePassword'); 
+            const signInButton = document.getElementById('signInButton');
+
+            if (!loginForm || !passwordInput || !togglePasswordButton || !signInButton || !formMessage ) {
+                console.error("One or more essential login form elements were not found in the DOM. Check IDs.");
+                 if (formMessage) { // Check if formMessage itself exists before trying to set its textContent
+                    formMessage.textContent = "Page initialization error. Please refresh.";
+                    formMessage.className = 'error-message-custom text-center mb-4';
+                }
+                return;
+            }
+
+            function togglePasswordVisibility(inputField, button) {
+                const icon = button.querySelector('i');
+                if (inputField.type === "password") {
+                    inputField.type = "text";
+                    icon.classList.remove("fa-eye");
+                    icon.classList.add("fa-eye-slash");
+                } else {
+                    inputField.type = "password";
+                    icon.classList.remove("fa-eye-slash");
+                    icon.classList.add("fa-eye");
+                }
+            }
+            togglePasswordButton.addEventListener('click', () => togglePasswordVisibility(passwordInput, togglePasswordButton));
+
+
+            loginForm.addEventListener('submit', async function(event) {
+                event.preventDefault();
+                formMessage.textContent = ''; 
+
+                const emailInput = document.getElementById('email'); 
+                const email = emailInput ? emailInput.value : ''; // Ensure emailInput exists
+                const password = passwordInput.value;
+
+                if (!email || !password) {
+                    formMessage.textContent = 'Please enter both email and password.';
+                    formMessage.className = 'error-message-custom text-center mb-4';
+                    return;
+                }
+                
+                formMessage.textContent = 'Processing...';
+                formMessage.className = 'text-blue-400 text-sm text-center mb-4'; 
+                signInButton.disabled = true;
+
+                try {
+                    const formData = new URLSearchParams();
+                    formData.append('username', email); 
+                    formData.append('password', password);
+
+                    const response = await fetch(`${API_BASE_URL}/api/users/token`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/x-www-form-urlencoded', },
+                        body: formData,
+                    });
+
+                    const data = await response.json();
+
+                    if (response.ok) {
+                        formMessage.textContent = 'Sign in successful! Redirecting...';
+                        formMessage.className = 'success-message-custom text-center mb-4';
+                        localStorage.setItem('hackverseToken', data.access_token);
+
+                        const userProfileResponse = await fetch(`${API_BASE_URL}/api/users/me`, {
+                            headers: { 'Authorization': `Bearer ${data.access_token}` }
+                        });
+
+                        if (userProfileResponse.ok) {
+                            const userProfile = await userProfileResponse.json();
+                            localStorage.setItem('hackverseUser', JSON.stringify(userProfile)); 
+                            setTimeout(() => { window.location.href = 'dashboard.html'; }, 1000);
+                        } else {
+                             formMessage.textContent = 'Logged in, but failed to fetch user details.';
+                             formMessage.className = 'error-message-custom text-center mb-4';
+                             localStorage.removeItem('hackverseToken'); 
+                        }
+                    } else {
+                        formMessage.textContent = data.detail || 'Sign in failed. Check credentials.';
+                        formMessage.className = 'error-message-custom text-center mb-4';
+                    }
+                } catch (error) {
+                    console.error('Sign in error:', error);
+                    formMessage.textContent = 'An error occurred. Please try again later.';
+                    formMessage.className = 'error-message-custom text-center mb-4';
+                } finally {
+                    signInButton.disabled = false;
+                }
+            });
+        });
+    </script>
+</body>
+</html>

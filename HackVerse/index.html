@@ -1,1 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hackverse - Welcome</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #111827; /* Dark background from Tailwind gray-900 */
+            color: #e5e7eb; /* Light text from Tailwind gray-200 */
+        }
+        /* Basic scroll animation placeholder - more complex animations require JS */
+        .scroll-animate {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.5s ease-out, transform 0.5s ease-out;
+        }
+        .scroll-animate.in-view {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        /* Ensure Tailwind's preflight styles are active for antialiasing */
+    </style>
+</head>
+<body class="antialiased">
 
+    <header class="bg-gray-800 shadow-lg sticky top-0 z-50">
+        <nav class="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <div class="flex items-center">
+                    <a href="index.html" class="text-2xl font-bold text-indigo-400">Hackverse</a>
+                    <div class="hidden md:ml-6 md:flex md:items-center md:space-x-4" id="loggedInNav">
+                        <a href="dashboard.html" class="px-3 py-2 rounded-md text-sm font-medium text-gray-300 hover:bg-gray-700 hover:text-white transition-colors">Dashboard</a>
+                        <a href="#levels" class="px-3 py-2 rounded-md text-sm font-medium text-gray-300 hover:bg-gray-700 hover:text-white transition-colors">Levels</a>
+                        <a href="leaderboard.html" class="px-3 py-2 rounded-md text-sm font-medium text-gray-300 hover:bg-gray-700 hover:text-white transition-colors">Leaderboard</a>
+                    </div>
+                </div>
+                <div class="flex items-center">
+                    <div id="guestNav" class="flex items-center space-x-3">
+                        <a href="login.html" class="bg-gray-600 hover:bg-gray-700 text-white font-semibold py-2 px-4 rounded-lg shadow-md transition-transform transform hover:scale-105 text-sm">Sign In</a>
+                        <a href="signup.html" class="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 px-4 rounded-lg shadow-md transition-transform transform hover:scale-105 text-sm">Sign Up</a>
+                    </div>
+                    <div id="userIconNav" class="hidden items-center ml-3">
+                        <span class="text-gray-300 mr-3" id="userPoints">Points: 0</span>
+                        <div id="userInitials" class="w-10 h-10 rounded-full bg-indigo-500 text-white flex items-center justify-center text-lg font-semibold">XY</div>
+                        <button id="logoutButton" class="ml-3 px-3 py-2 rounded-md text-sm font-medium text-gray-300 hover:bg-gray-700 hover:text-white transition-colors">Logout</button>
+                    </div>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <section class="py-20 bg-gray-900">
+        <div class="container mx-auto px-6 text-center">
+            <h1 class="text-5xl font-bold text-white mb-6 scroll-animate">Welcome to <span class="text-indigo-400">Hackverse</span>!</h1>
+            <p class="text-xl text-gray-300 mb-8 scroll-animate">
+                Your journey into the world of ethical hacking and cybersecurity starts here.
+                Learn, practice, and compete in a safe and engaging environment.
+            </p>
+            <a href="signup.html" class="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 px-8 rounded-lg shadow-md transition-transform transform hover:scale-105 text-lg scroll-animate">Get Started</a>
+        </div>
+    </section>
+
+    <section id="about" class="py-16 bg-gray-800">
+        <div class="container mx-auto px-6">
+            <h2 class="text-3xl font-bold text-center text-white mb-12 scroll-animate">Why Hackverse?</h2>
+            <div class="grid md:grid-cols-3 gap-8">
+                <div class="bg-gray-700 p-6 rounded-lg shadow-xl scroll-animate">
+                    <h3 class="text-xl font-semibold text-indigo-400 mb-3">Learn by Doing</h3>
+                    <p class="text-gray-300">Engage in realistic CTF-style challenges designed to teach you practical cybersecurity skills.</p>
+                </div>
+                <div class="bg-gray-700 p-6 rounded-lg shadow-xl scroll-animate" style="transition-delay: 0.1s;">
+                    <h3 class="text-xl font-semibold text-indigo-400 mb-3">Track Your Progress</h3>
+                    <p class="text-gray-300">See how far you've come, earn points for completing levels, and unlock new challenges.</p>
+                </div>
+                <div class="bg-gray-700 p-6 rounded-lg shadow-xl scroll-animate" style="transition-delay: 0.2s;">
+                    <h3 class="text-xl font-semibold text-indigo-400 mb-3">Compete & Improve</h3>
+                    <p class="text-gray-300">Test your skills against the clock and climb the leaderboard in timed challenges.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="py-16 bg-gray-900">
+        <div class="container mx-auto px-6 text-center">
+            <h2 class="text-3xl font-bold text-white mb-6 scroll-animate">Ready to Test Your Skills?</h2>
+            <p class="text-lg text-gray-300 mb-8 scroll-animate">Sign up today and start your ethical hacking adventure.</p>
+            <a href="signup.html" class="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 px-8 rounded-lg shadow-md transition-transform transform hover:scale-105 text-lg scroll-animate">Join Hackverse Now</a>
+        </div>
+    </section>
+
+    <footer class="bg-gray-800 border-t border-gray-700">
+        <div class="container mx-auto px-6 py-8 text-center text-gray-400">
+            <p>© <span id="currentYear"></span> Hackverse. All rights reserved.</p>
+            <p class="text-sm mt-2">An Educational Project for Ethical Hacking Simulation.</p>
+        </div>
+    </footer>
+
+    <script>
+        // Basic script for dynamic year and simple scroll animations
+        document.getElementById('currentYear').textContent = new Date().getFullYear();
+
+        const scrollElements = document.querySelectorAll('.scroll-animate');
+        const elementInView = (el, dividend = 1) => {
+            const elementTop = el.getBoundingClientRect().top;
+            return (
+                elementTop <= (window.innerHeight || document.documentElement.clientHeight) / dividend
+            );
+        };
+        const displayScrollElement = (element) => {
+            element.classList.add('in-view');
+        };
+        const handleScrollAnimation = () => {
+            scrollElements.forEach((el) => {
+                if (elementInView(el, 1.25)) {
+                    displayScrollElement(el);
+                }
+            });
+        };
+        window.addEventListener('scroll', () => {
+            handleScrollAnimation();
+        });
+        // Trigger on load for elements already in view
+        handleScrollAnimation();
+
+        // Mock login state for header display - replace with actual auth logic
+        function checkLoginStatus() {
+            const loggedInUser = localStorage.getItem('hackverseUser');
+            const guestNav = document.getElementById('guestNav');
+            const loggedInNav = document.getElementById('loggedInNav');
+            const userIconNav = document.getElementById('userIconNav');
+            const userInitials = document.getElementById('userInitials');
+            const userPoints = document.getElementById('userPoints');
+
+            if (loggedInUser) {
+                const user = JSON.parse(loggedInUser);
+                guestNav.style.display = 'none';
+                loggedInNav.classList.remove('hidden');
+                loggedInNav.classList.add('md:flex'); // Ensure it becomes flex on medium screens
+                userIconNav.classList.remove('hidden');
+                userIconNav.classList.add('flex'); // Ensure it becomes flex
+                if (user.first_name && user.last_name) { // Adjusted to match backend UserPublic model
+                    userInitials.textContent = `${user.first_name.charAt(0)}${user.last_name.charAt(0)}`.toUpperCase();
+                } else if (user.firstName && user.lastName) { // Fallback for older localStorage format
+                     userInitials.textContent = `${user.firstName.charAt(0)}${user.lastName.charAt(0)}`.toUpperCase();
+                }
+                userPoints.textContent = `Points: ${user.points || 0}`;
+
+                document.getElementById('logoutButton').addEventListener('click', () => {
+                    localStorage.removeItem('hackverseUser');
+                    localStorage.removeItem('hackverseToken'); // Also remove token
+                    window.location.href = 'index.html';
+                });
+
+            } else {
+                guestNav.style.display = 'flex';
+                loggedInNav.classList.add('hidden');
+                loggedInNav.classList.remove('md:flex');
+                userIconNav.classList.add('hidden');
+                userIconNav.classList.remove('flex');
+            }
+        }
+        document.addEventListener('DOMContentLoaded', checkLoginStatus);
+    </script>
+</body>
+</html>
