@@ -17,7 +17,7 @@ from dotenv import load_dotenv
 
 load_dotenv() 
 
-USER_PROVIDED_ATLAS_STRING = "mongodb+srv://amysantiago779:j82T8isbalI7X63g@ethical.rm9ry9j.mongodb.net/?retryWrites=true&w=majority&appName=Ethical"
+USER_PROVIDED_ATLAS_STRING = "mongodb+srv://the rest from your mongodb server"
 MONGO_DETAILS = os.getenv("MONGO_DETAILS")
 if MONGO_DETAILS:
     print("Loaded MONGO_DETAILS from environment.")
@@ -32,10 +32,10 @@ else:
         print(f"Using provided ATLAS string for MONGO_DETAILS: {MONGO_DETAILS[:70]}...")
 
 
-DATABASE_NAME = os.getenv("DATABASE_NAME", "Ethical")
+DATABASE_NAME = os.getenv("DATABASE_NAME", "<your_database_name>")
 # Removed: ADMIN_EMAIL
 
-DEFAULT_SECRET_KEY = "your_strong_secret_key_here_replace_this_NOW_or_set_in_env"
+DEFAULT_SECRET_KEY = "<put your secret key in here>"
 SECRET_KEY = os.getenv("SECRET_KEY", DEFAULT_SECRET_KEY)
 if SECRET_KEY == DEFAULT_SECRET_KEY and not os.getenv("SECRET_KEY"):
      print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
